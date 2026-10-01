@@ -38,13 +38,13 @@ def benchmark():
     return taille_p, temps_exec, nb_iterations
 def graph():
     x, y, _ = benchmark()
-    
-    plt.plot(x, y, marker='o', color='red', label='Mesures Force Brute O(p)')
-    plt.xlabel("Taille du modulo p")
-    plt.ylabel("Temps d'exécution (secondes)")
+
+    plt.plot(x, y, marker='o', color='red', label='Mesurement Force Brute O(p)')
+    plt.xlabel("Order of magnitude of modulo p (10^k)")
+    plt.ylabel("Execution time (seconds)")
     plt.title("Complexity of brute force on Diffie-Hellman algorithm")
     plt.grid(True)
-    plt.savefig("Complexity_brute force_Diffie-Hellman.png", dpi=300)
+    plt.savefig("Complexity_brute_force_Diffie-Hellman.png", dpi=300)
     plt.show()
 graph()
 
