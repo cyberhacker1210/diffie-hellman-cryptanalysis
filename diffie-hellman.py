@@ -18,4 +18,21 @@ def brute_force(g,p,A):
         if Atest == A:
             end = perf_counter()
             return a, end - start, count
-    
+def benchmark():
+    Dataset = [
+        (11, 1009),
+        (5, 10007),
+        (2, 100003),
+        (2, 1000003),
+    ]
+    taille_p = []
+    temps_exec = []
+    nb_iterations = []
+    for g , p in Dataset:
+        A, _, _ = DH(g, p)
+        _, time, nb = brute_force(g, p, A)
+        taille_p.append(p)
+        temps_exec.append(time)
+        nb_iterations.append(nb)
+    return taille_p, temps_exec, nb_iterations
+print(benchmark())
