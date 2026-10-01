@@ -1,5 +1,6 @@
-from random import randint
 from time import *
+import matplotlib.pyplot as plt
+
 def DH(g, p):
     secret_a = p-2
     secret_b = p-2
@@ -31,8 +32,20 @@ def benchmark():
     for g , p in Dataset:
         A, _, _ = DH(g, p)
         _, time, nb = brute_force(g, p, A)
-        taille_p.append(p)
+        taille_p.append(len(str(p))-1)
         temps_exec.append(time)
         nb_iterations.append(nb)
     return taille_p, temps_exec, nb_iterations
-print(benchmark())
+def graph():
+    x, y, _ = benchmark()
+    
+    plt.plot(x, y, marker='o', color='red', label='Mesures Force Brute O(p)')
+    plt.xlabel("Taille du modulo p")
+    plt.ylabel("Temps d'exécution (secondes)")
+    plt.title("Complexity of brute force on Diffie-Hellman algorithm")
+    plt.grid(True)
+    plt.savefig("Complexity_brute force_Diffie-Hellman.png", dpi=300)
+    plt.show()
+graph()
+
+
