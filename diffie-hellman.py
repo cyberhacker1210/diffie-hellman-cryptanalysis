@@ -20,33 +20,7 @@ def brute_force(g,p,A):
         if Atest == A:
             end = perf_counter()
             return a, end - start, count
-def benchmark():
-    Dataset = [
-        (11, 1009),
-        (5, 10007),
-        (2, 100003),
-        (2, 1000003),
-    ]
-    taille_p = []
-    temps_exec = []
-    nb_iterations = []
-    for g , p in Dataset:
-        A, _, _ = DH(g, p)
-        _, time, nb = brute_force(g, p, A)
-        taille_p.append(len(str(p))-1)
-        temps_exec.append(time)
-        nb_iterations.append(nb)
-    return taille_p, temps_exec, nb_iterations
-def graph():
-    x, y, _ = benchmark()
-
-    plt.plot(x, y, marker='o', color='red', label='Mesurement Force Brute O(p)')
-    plt.xlabel("Order of magnitude of modulo p (10^k)")
-    plt.ylabel("Execution time (seconds)")
-    plt.title("Complexity of brute force on Diffie-Hellman algorithm")
-    plt.grid(True)
-    plt.savefig("Complexity_brute_force_Diffie-Hellman.png", dpi=300)
-    plt.show()
+        
 def bsgs(g,p,A):
     start = perf_counter()
     ops = 0
@@ -70,7 +44,41 @@ def bsgs(g,p,A):
     time = end - start
     return x, time, ops
 A, _, _ = DH(11, 1009)
-print(brute_force(11, 1009, A))
-print(bsgs(11, 1009, A))
 
+def benchmark():
+    Dataset = [
+        (11, 1009),
+        (5, 10007),
+        (2, 100003),
+        (2, 1000003),
+    ]
+    taille_p = []
+    temps_exec_bf = []
+    temps_exec_bg = []
+    nb_iterations_bf = []
+    nb_iterations_bg = []
+    for g , p in Dataset:
+        A, _, _ = DH(g, p)
+        _, time_bf, nb_bf = brute_force(g, p, A)
+        _, time_bg, nb_bg = bsgs(g, p, A)
 
+        taille_p.append(len(str(p))-1)
+        temps_exec_bf.append(time_bf)
+        temps_exec_bg.append(time_bg)
+        nb_iterations_bf.append(nb_bf)
+        nb_iterations_bg.append(nb_bg)
+    return taille_p, temps_exec_bf,temps_exec_bg, nb_iterations_bf, nb_iterations_bg
+
+def graph():
+    x, ybf, ybg, _, _ = benchmark()
+
+    plt.plot(x, ybf, marker='o', color='red', label='Mesurement Force Brute O(p)')
+    plt.plot(x, ybg, marker='o', color='blue', label='Mesurment BSGS O(sqrt(p))')
+    plt.xlabel("Order of magnitude of modulo p (10^k)")
+    plt.ylabel("Execution time (seconds)")
+    plt.title("Complexity of brute force VS BSGS on Diffie-Hellman algorithm")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig("Complexity_brute_force_vs_BSGS.png", dpi=300)
+    plt.show()
+graph()
