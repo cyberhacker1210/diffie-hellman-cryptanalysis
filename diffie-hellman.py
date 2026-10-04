@@ -1,5 +1,6 @@
 from time import *
 import matplotlib.pyplot as plt
+import math
 
 def DH(g, p):
     secret_a = p-2
@@ -46,6 +47,30 @@ def graph():
     plt.grid(True)
     plt.savefig("Complexity_brute_force_Diffie-Hellman.png", dpi=300)
     plt.show()
-graph()
+def bsgs(g,p,A):
+    start = perf_counter()
+    ops = 0
+    m = math.isqrt(p) + 1 
+    ops += 1
+    Bs = {}
+    for j in range(m):
+        res = (A * pow(g,j,p)) % p
+        Bs[res] = j
+        ops += 1
+    for i in range(1, m+1):
+        res = pow(g,i*m,p)
+        ops += 1
+        if res in Bs:
+            couple = (i, Bs[res])
+            break
+    i, j = couple
+    x = i*m-j
+    ops += 1
+    end = perf_counter()
+    time = end - start
+    return x, time, ops
+A, _, _ = DH(11, 1009)
+print(brute_force(11, 1009, A))
+print(bsgs(11, 1009, A))
 
 
