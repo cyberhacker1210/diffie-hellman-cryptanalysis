@@ -50,3 +50,12 @@ Below is the benchmark graph showing execution time as a function of the order o
 - **With respect to key size (number of digits $k$ of $p$):** The time complexity is **exponential** $\mathcal{O}(10^k)$.
 
 As shown on the graph, adding just a few digits to $p$ causes the execution time to explode. If $p$ is sufficiently large, a naive brute-force attack would take decades or centuries to find $x$.
+
+## 2. Solution 2: Baby steps Giant steps 
+An ingenious way to optimise our naive brute force attack:
+if we base onn our precedent solution we need to try every x to found the solution.
+But what if we decompose x:
+Let's say m=ceil(sqrt(p))
+we can decompose x as follow : x = i*m-j 
+With this deomposition we can write any numbers n € [1;p] with i € [1;m] and j € [0;m-1]
+E.g : let' s say that p = 23
