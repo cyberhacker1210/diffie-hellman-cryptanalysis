@@ -2,7 +2,7 @@ import socket
 import random
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 HOST = '127.0.0.1'
-PORT = 65432
+PORT = 65433
 s.bind((HOST, PORT))
 s.listen()
 print("Bob listening")
