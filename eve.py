@@ -28,4 +28,12 @@ A = int(conn_alice.recv(1024).decode('utf-8'))
 conn_alice.sendall(f"{E}".encode('utf-8'))
 Kalice = pow(A,e,p)
 print(Kalice,Kbob)
+def cipher(text, key):
+    return "".join(chr(ord(c) ^ key) for c in text)
 
+Text = conn_alice.recv(1024).decode('utf-8')
+Text = cipher(Text,Kalice)
+print(Text)
+Text = "Virement de 10000€"
+Text = cipher(Text, Kbob)
+socket_bob.sendall(Text.encode('utf-8'))

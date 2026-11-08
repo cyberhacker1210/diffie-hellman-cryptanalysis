@@ -15,3 +15,10 @@ s.sendall(f"{A}".encode('utf-8'))
 B = int(s.recv(1024).decode('utf-8'))
 K = pow(B,a,p)
 print(K)
+def cipher(text, key):
+    return "".join(chr(ord(c) ^ key) for c in text)
+
+Text = "Virement de 100€"
+Text = cipher(Text, K)
+s.sendall(Text.encode('utf-8'))
+print(Text)

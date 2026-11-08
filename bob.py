@@ -17,3 +17,8 @@ A = int(conn.recv(1024).decode('utf-8'))
 conn.sendall(f"{B}".encode('utf-8'))
 K = pow(A,b,p)
 print(K)
+def cipher(text, key):
+    return "".join(chr(ord(c) ^ key) for c in text)
+Text = conn.recv(1024).decode('utf-8')
+Text = cipher(Text,K)
+print(Text)
