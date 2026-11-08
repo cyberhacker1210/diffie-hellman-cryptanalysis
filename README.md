@@ -51,11 +51,100 @@ Below is the benchmark graph showing execution time as a function of the order o
 
 As shown on the graph, adding just a few digits to $p$ causes the execution time to explode. If $p$ is sufficiently large, a naive brute-force attack would take decades or centuries to find $x$.
 
-## 2. Solution 2: Baby steps Giant steps 
-An ingenious way to optimise our naive brute force attack:
-if we base onn our precedent solution we need to try every x to found the solution.
-But what if we decompose x:
-Let's say m=ceil(sqrt(p))
-we can decompose x as follow : x = i*m-j 
-With this deomposition we can write any numbers n € [1;p] with i € [1;m] and j € [0;m-1]
-E.g : let' s say that p = 23
+## 3. Solution 2: Shanks' Baby-Step Giant-Step (BSGS) Algorithm
+
+To optimize the naive brute-force approach, we can use **Shanks' Baby-Step Giant-Step (BSGS)** algorithm, a meet-in-the-middle technique that reduces the time complexity from linear $\mathcal{O}(p)$ to square-root $\mathcal{O}(\sqrt{p})$.
+
+### Mathematical Principle
+
+Instead of searching $x$ sequentially across the entire range $[0, p-1]$, we decompose $x$ using a spatial split:
+
+Let $m = \lceil \sqrt{p} \rceil$. Any secret integer $x \in [0, p-1]$ can be uniquely written as:
+$$x = i \cdot m - j \quad \text{where } 1 \le i \le m \text{ and } 0 \le j < m$$
+
+*Example:* For $p = 23$, $m = \lceil \sqrt{23} \rceil = 5$. Any integer $x \in [0, 22]$ can be represented with $i \in [1, 5]$ and $j \in [0, 4]$.
+
+Substituting $x = i \cdot m - j$ into the Discrete Logarithm equation $g^x \equiv A \pmod p$:
+
+$$g^{i \cdot m - j} \equiv A \pmod p$$
+
+Multiplying both sides by $g^j \pmod p$:
+
+$$(g^m)^i \equiv A \cdot g^j \pmod p$$
+
+### Algorithm Steps:
+1. **Baby Steps (Precomputation):**
+   Compute $A \cdot g^j \pmod p$ for all $j \in [0, m-1]$ and store the pairs $\{ (A \cdot g^j \pmod p) : j \}$ in a hash table (Python dictionary).
+2. **Giant Steps (Search):**
+   Compute $(g^m)^i \pmod p$ for $i \in [1, m]$. For each step, check if the value exists in the hash table.
+3. **Collision Resolution:**
+   When a match is found, we obtain the pair $(i, j)$ and immediately reconstruct the secret key:
+   $$x = i \cdot m - j$$
+
+### Complexity Analysis:
+- **Time Complexity:** $\mathcal{O}(\sqrt{p})$ (at most $m$ Baby Steps and $m$ Giant Steps).
+- **Space Complexity:** $\mathcal{O}(\sqrt{p})$ (required to store $m$ entries in the hash table).
+
+
+## 4. Performance Benchmark & Comparison
+
+Below is the comparative benchmark graph showing execution times for both algorithms up to $p \approx 10^6$:
+
+![Brute Force vs BSGS Comparison](Complexity_brute_force_vs_BSGS.png)
+
+### Benchmark Data Table:
+
+| Modulo $p$ | Brute-Force Ops ($\mathcal{O}(p)$) | BSGS Ops ($\mathcal{O}(\sqrt{p})$) | Speedup Factor |
+| :--- | :--- | :--- | :--- |
+| $1\,009$ | $1\,008$ | $66$ | $\sim 15\times$ |
+| $10\,007$ | $10\,006$ | $\approx 200$ | $\sim 50\times$ |
+| $100\,003$ | $100\,002$ | $\approx 630$ | $\sim 150\times$ |
+| $1\,000\,003$ | $1\,000\,002$ | $\approx 2\,000$ | $\sim 500\times$ |
+
+**Conclusion:** BSGS drastically outperforms brute-force by replacing exponential operations with constant-time hash table lookups ($\mathcal{O}(1)$ average lookup).
+
+
+## 5. Phase 2: Active Network Man-in-the-Middle (MitM) Attack
+
+While Diffie-Hellman guarantees confidentiality against passive eavesdroppers (if $p$ is sufficiently large), it is fundamentally **vulnerable to active attacks** in the absence of authentication (such as SSL/TLS certificates).
+
+To demonstrate this vulnerability, we implemented a real-time **Man-in-the-Middle (MitM)** attack over TCP/IP sockets involving three independent programs.
+
+### Network Topology & Port Mapping:
+
+```text
+  [ Alice Client ]  <--- (Port 65432) --->  [ Eve MitM Proxy ]
+                                                    |
+                                               (Port 65433)
+                                                    v
+                                             [ Bob Server ]
+```
+
+Attack Mechanism (eve.py):
+
+**Socket Interception:** Eve listens on port 65432 (pretending to be Bob) and connects to Bob on port 65433 (pretending to be Alice).
+
+**Key Substitution (Poisoning):**
+
+- Alice computes her public key $A = g^a \pmod p$.
+- Bob computes his public key $B = g^b \pmod p$.
+- Eve intercepts both keys and generates her own secret $e$ and public key $E = g^e \pmod p$.
+- Eve sends $E$ to Alice (instead of $B$) and $E$ to Bob (instead of $A$).
+
+**Secret Derivation:**
+
+- Alice computes $K_{\text{Alice}} = E^a \pmod p$.
+- Bob computes $K_{\text{Bob}} = E^b \pmod p$.
+- Eve derives BOTH shared secrets:
+  $$K_{\text{Eve-Alice}} = A^e \pmod p = K_{\text{Alice}}$$
+  $$K_{\text{Eve-Bob}} = B^e \pmod p = K_{\text{Bob}}$$
+
+**On-the-Fly Decryption & Message Tampering:**
+
+When Alice sends an encrypted message over the network:
+
+1. Alice encrypts "ENVOYER 100 EUROS" using $K_{\text{Alice}}$ and transmits the payload.
+2. Eve intercepts the socket bytes, decrypts the payload with $K_{\text{Alice}}$, and reads the plaintext.
+3. Eve alters the message to "ENVOYER 10000 EUROS".
+4. Eve re-encrypts the tampered message using $K_{\text{Bob}}$ and forwards it to Bob.
+5. Bob receives and decrypts the payload with $K_{\text{Bob}}$, unaware that the message was modified.
